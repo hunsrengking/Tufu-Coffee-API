@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: tufu-db
+    restart: always
+    environment:
+      POSTGRES_USER: tufu
+      POSTGRES_PASSWORD: Master123
+      POSTGRES_DB: tufu_db
+    ports:
+      - "5443:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+  api:
+    build: .
+    container_name: tufu-api
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\NodeJs\\Tufu-API\\logs\\.d6700ae8fe797342c34466aeda4fbfe073dc6bbe-audit.json",
+    "files": [
+        {
+            "date": 1774602880678,
+            "name": "D:\\NodeJs\\Tufu-API\\logs\\error-2026-03-27.log",
+            "hash": "121f00099c6565f2794b430cdd13a0bfb9496ea785126d07af583cf1fbbe59a9"
+        },
+        {
+            "date": 1774663855851,
+            "name": "D:\\NodeJs\\Tufu-API\\logs\\error-2026-03-28.log",
+            "hash": "1d7f111ed3dc797b89486a34d516e515fd1fea907d588970887b7cf92e14a8f9"
+        }
+    ],
+    "hashType": "sha256"
+}

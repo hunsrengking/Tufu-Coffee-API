@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\NodeJs\\coffee\\Tufu-Coffee-API\\logs\\.417fc1b6dd51f99637bf772048c67547b0500c81-audit.json",
+    "files": [
+        {
+            "date": 1777477788609,
+            "name": "D:\\NodeJs\\coffee\\Tufu-Coffee-API\\logs\\combined-2026-04-29.log",
+            "hash": "d2841fce62986b1bd3ec1c6152d5f3f37d243c9ee523d5a265a48ccc2d8a69dc"
+        },
+        {
+            "date": 1777482013307,
+            "name": "D:\\NodeJs\\coffee\\Tufu-Coffee-API\\logs\\combined-2026-04-30.log",
+            "hash": "18fe10ec55dd001a21e1fc851d933f2099fad587df234d8c4f71ce2a181fbd8e"
+        }
+    ],
+    "hashType": "sha256"
+}
