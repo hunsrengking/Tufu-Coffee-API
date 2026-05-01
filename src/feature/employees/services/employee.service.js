@@ -37,10 +37,11 @@ const EmployeeService = {
 
   async deleteEmployee(id) {
     const employee = await Employee.findById(id);
-    if (!employee) throw new AppError("Employee not found", 404);
+    if (!employee) throw new EmployeeNotFoundException("Employee not found", 404);
     
     await Employee.delete(id);
   }
 };
 
 export default EmployeeService;
+

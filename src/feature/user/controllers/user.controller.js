@@ -31,6 +31,11 @@ const UserController = {
     await UserService.unlockUser(req.params.id);
     sendResponse(res, 200, "User unlocked successfully");
   },
+
+  async changePassword(req, res) {
+    await UserService.changePassword(req.params.id, req.body);
+    sendResponse(res, 200, "Password changed successfully");
+  },
 };
 
 export default UserController;

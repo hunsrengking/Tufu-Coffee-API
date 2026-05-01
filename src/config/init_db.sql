@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS roles (
   id SERIAL PRIMARY KEY,
   name VARCHAR(50) UNIQUE NOT NULL,
   description TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -12,6 +13,7 @@ CREATE TABLE IF NOT EXISTS permissions (
   name VARCHAR(100) UNIQUE NOT NULL,
   resource VARCHAR(100) NOT NULL,
   action VARCHAR(100) NOT NULL,
+  group_name VARCHAR(100),
   is_active BOOLEAN DEFAULT TRUE
 );
 
@@ -29,6 +31,7 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   password_decrypted VARCHAR(255) NOT NULL,
   role_id INTEGER REFERENCES roles(id) ON DELETE SET NULL,
+  employee_id INTEGER REFERENCES employees(id) ON DELETE SET NULL,
   is_active BOOLEAN DEFAULT TRUE,
   is_locked BOOLEAN DEFAULT FALSE,
   is_deleted BOOLEAN DEFAULT FALSE,
@@ -52,17 +55,33 @@ CREATE TABLE IF NOT EXISTS offices (
   deleted_at TIMESTAMP NULL
 );
 
+CREATE TABLE IF NOT EXISTS positions(
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) UNIQUE NOT NULL,
+  description TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS departments(
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) UNIQUE NOT NULL,
+  description TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS employees (
   id SERIAL PRIMARY KEY,
   office_id INTEGER REFERENCES offices(id) ON DELETE SET NULL,
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
+  email VARCHAR(100) NOT NULL,
   phone VARCHAR(20),
-  position VARCHAR(100),
-  department VARCHAR(100),
+  position_id INTEGER REFERENCES positions(id) ON DELETE SET NULL,
+  department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
   salary DECIMAL(10, 2),
-  hire_date DATE DEFAULT CURRENT_DATE,
+  JoinOn_date DATE ,
   is_active BOOLEAN DEFAULT TRUE,
   is_deleted BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -183,37 +202,41 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- Seed basic roles and permissions
 INSERT INTO roles (name, description ) VALUES ('Admin', 'System Administrator'), ('User', 'Standard User') ON CONFLICT DO NOTHING;
 
-INSERT INTO permissions (name, resource, action, is_active) VALUES 
-('CREATE_USER', 'USER','CREATE',true),
-('READ_USER', 'USER','READ',true),
-('UPDATE_USER', 'USER','UPDATE',true),
-('DELETE_USER', 'USER','DELETE',true),
-('CREATE_EMPLOYEE', 'EMPLOYEE','CREATE',true),
-('READ_EMPLOYEE', 'EMPLOYEE','READ',true),
-('UPDATE_EMPLOYEE', 'EMPLOYEE','UPDATE',true),
-('DELETE_EMPLOYEE', 'EMPLOYEE','DELETE',true),
-('CREATE_OFFICE', 'OFFICE','CREATE',true),
-('READ_OFFICE', 'OFFICE','READ',true),
-('UPDATE_OFFICE', 'OFFICE','UPDATE',true),
-('DELETE_OFFICE', 'OFFICE','DELETE',true),
-('VIEW_DASHBOARD', 'DASHBOARD','VIEW',true),
-('CREATE_PRODUCT', 'PRODUCT','CREATE',true),
-('READ_PRODUCT', 'PRODUCT','READ',true),
-('UPDATE_PRODUCT', 'PRODUCT','UPDATE',true),
-('DELETE_PRODUCT', 'PRODUCT','DELETE',true),
-('CREATE_CATEGORY', 'CATEGORY','CREATE',true),
-('READ_CATEGORY', 'CATEGORY','READ',true),
-('UPDATE_CATEGORY', 'CATEGORY','UPDATE',true),
-('DELETE_CATEGORY', 'CATEGORY','DELETE',true),
-('CREATE_ORDER', 'ORDER','CREATE',true),
-('READ_ORDER', 'ORDER','READ',true),
-('UPDATE_ORDER', 'ORDER','UPDATE',true),
-('DELETE_ORDER', 'ORDER','DELETE',true),
-('CREATE_DISCOUNT', 'DISCOUNT','CREATE',true),
-('READ_DISCOUNT', 'DISCOUNT','READ',true),
-('UPDATE_DISCOUNT', 'DISCOUNT','UPDATE',true),
-('DELETE_DISCOUNT', 'DISCOUNT','DELETE',true)
-ON CONFLICT (name) DO UPDATE SET resource = EXCLUDED.resource, action = EXCLUDED.action;
+INSERT INTO permissions (name, resource, action, group_name, is_active) VALUES 
+('CREATE_USER', 'USER','CREATE', 'Organization', true),
+('READ_USER', 'USER','READ', 'Organization', true),
+('UPDATE_USER', 'USER','UPDATE', 'Organization', true),
+('DELETE_USER', 'USER','DELETE', 'Organization', true),
+('CREATE_EMPLOYEE', 'EMPLOYEE','CREATE', 'Organization', true),
+('READ_EMPLOYEE', 'EMPLOYEE','READ', 'Organization', true),
+('UPDATE_EMPLOYEE', 'EMPLOYEE','UPDATE', 'Organization', true),
+('DELETE_EMPLOYEE', 'EMPLOYEE','DELETE', 'Organization', true),
+('CREATE_OFFICE', 'OFFICE','CREATE', 'Organization', true),
+('READ_OFFICE', 'OFFICE','READ', 'Organization', true),
+('UPDATE_OFFICE', 'OFFICE','UPDATE', 'Organization', true),
+('DELETE_OFFICE', 'OFFICE','DELETE', 'Organization', true),
+('VIEW_DASHBOARD', 'DASHBOARD','VIEW', 'Organization', true),
+('CREATE_PRODUCT', 'PRODUCT','CREATE', 'Organization', true),
+('READ_PRODUCT', 'PRODUCT','READ', 'Organization', true),
+('UPDATE_PRODUCT', 'PRODUCT','UPDATE', 'Organization', true),
+('DELETE_PRODUCT', 'PRODUCT','DELETE', 'Organization', true),
+('CREATE_CATEGORY', 'CATEGORY','CREATE', 'Organization', true),
+('READ_CATEGORY', 'CATEGORY','READ', 'Organization', true),
+('UPDATE_CATEGORY', 'CATEGORY','UPDATE', 'Organization', true),
+('DELETE_CATEGORY', 'CATEGORY','DELETE', 'Organization', true),
+('CREATE_ORDER', 'ORDER','CREATE', 'Organization', true),
+('READ_ORDER', 'ORDER','READ', 'Organization', true),
+('UPDATE_ORDER', 'ORDER','UPDATE', 'Organization', true),
+('DELETE_ORDER', 'ORDER','DELETE', 'Organization', true),
+('CREATE_DISCOUNT', 'DISCOUNT','CREATE', 'Organization', true),
+('READ_DISCOUNT', 'READ_DISCOUNT','READ', 'Organization', true),
+('UPDATE_DISCOUNT', 'UPDATE_DISCOUNT','UPDATE', 'Organization', true),
+('DELETE_DISCOUNT', 'DELETE_DISCOUNT','DELETE', 'Organization', true),
+('CREATE_ROLE', 'ROLE','CREATE', 'Organization', true),
+('READ_ROLE', 'ROLE','READ', 'Organization', true),
+('UPDATE_ROLE', 'ROLE','UPDATE', 'Organization', true),
+('DELETE_ROLE', 'ROLE','DELETE', 'Organization', true)
+ON CONFLICT (name) DO UPDATE SET resource = EXCLUDED.resource, action = EXCLUDED.action, group_name = EXCLUDED.group_name;
 
 -- Grant all permissions to admin (assumes roles and permissions are seeded)
 INSERT INTO role_permissions (role_id, permission_id) 

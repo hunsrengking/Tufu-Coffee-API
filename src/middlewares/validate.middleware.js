@@ -2,7 +2,14 @@ import { AppError } from "./error.middleware.js";
 
 const validate = (schema) => {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body, { abortEarly: false });
+    // Combine params, query, and body for validation
+    const dataToValidate = {
+      ...req.params,
+      ...req.query,
+      ...req.body
+    };
+
+    const { error } = schema.validate(dataToValidate, { abortEarly: false, allowUnknown: true });
     
     if (error) {
       const errorMessage = error.details

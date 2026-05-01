@@ -24,8 +24,10 @@ export const protect = async (req, res, next) => {
       req.user = user;
       return next();
     } catch (error) {
+      console.error("Auth Middleware Error:", error);
       return next(new AppError("Invalid token. Please log in again.", 401));
     }
+
   }
 
   if (!token) {

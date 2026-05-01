@@ -44,6 +44,14 @@ const UserService = {
       throw new UserNotFoundException();
     }
     await User.unlock(id);
+  },
+
+  async changePassword(id, data) {
+    const user = await User.findById(id);
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+    await User.changePassword(id, data.newPassword);
   }
 };
 
