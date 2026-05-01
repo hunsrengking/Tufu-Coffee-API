@@ -6,7 +6,8 @@ import validate from "../../../middlewares/validate.middleware.js";
 const router = express.Router();
 
 router.post("/login", validate(authValidation.login), AuthController.login);
-router.post("/forgot-password", validate(authValidation.forgotPassword), AuthController.forgotPassword);
-router.post("/reset-password", validate(authValidation.resetPassword), AuthController.resetPassword);
+router.post("/forgotpassword", validate(authValidation.forgotPassword), AuthController.forgotPassword);
+router.post("/verifyotp", validate(authValidation.verifyOTP), AuthController.verifyOTP);
+router.post("/resetpassword", validate(authValidation.resetPassword), AuthController.resetPassword);
 
 export default router;

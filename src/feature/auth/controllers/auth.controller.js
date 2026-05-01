@@ -14,22 +14,23 @@ const AuthController = {
   async forgotPassword(req, res) {
     const { email } = req.body;
     const result = await AuthService.forgotPassword(email);
-    sendResponse(res, 200, result.message, {
-      verificationToken: result.verificationToken,
-    });
+    sendResponse(res, 200, result.message);
+  },
+
+  // Verify OTP handler
+  async verifyOTP(req, res) {
+    const { email, otp } = req.body;
+    const result = await AuthService.verifyOTP(email, otp);
+    sendResponse(res, 200, result.message);
   },
 
   // Reset password handler
   async resetPassword(req, res) {
-    const { email, code, verificationToken, newPassword } = req.body;
-    const result = await AuthService.verifyAndResetPassword(
-      email,
-      code,
-      verificationToken,
-      newPassword
-    );
+    const { email, newPassword } = req.body;
+    const result = await AuthService.resetPassword(email, newPassword);
     sendResponse(res, 200, result.message);
   },
 };
+
 
 export default AuthController;

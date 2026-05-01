@@ -9,6 +9,13 @@ const User = {
     );
     return rows[0];
   },
+  async findByEmailOrRecoveryEmail(email) {
+    const { rows } = await pool.query(
+      "SELECT u.*, r.name as role_name FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE (u.email = $1 OR u.recovery_email = $1) AND u.is_deleted = FALSE",
+      [email]
+    );
+    return rows[0];
+  },
 
   async findById(id) {
     const { rows } = await pool.query(
@@ -140,6 +147,22 @@ const User = {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await pool.query(
       "UPDATE users SET password = $1, password_decrypted = $2 WHERE id = $3",
+      [hashedPassword, newPassword, id]
+    );
+  },
+
+  async updateOTP(id, otp, expiry) {
+    const hashedOTP = await bcrypt.hash(otp, 10);
+    await pool.query(
+      "UPDATE users SET otp = $2, otp_expire = $3 WHERE id = $1",
+      [id, hashedOTP, expiry]
+    );
+  },
+
+  async resetPassword(id, newPassword) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      "UPDATE users SET password = $1, password_decrypted = $2, otp = NULL, otp_expire = NULL WHERE id = $3",
       [hashedPassword, newPassword, id]
     );
   }

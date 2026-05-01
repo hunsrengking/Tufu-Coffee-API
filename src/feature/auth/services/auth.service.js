@@ -1,17 +1,17 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import User from "../../user/models/user.model.js";
 import {
   InvalidCredentialsException,
   AccountLockedException,
   AccountInactiveException,
 } from "../exceptions/auth.exception.js";
+import { UserNotFoundException } from "../../user/exceptions/user.exception.js";
 import { AppError } from "../../../middlewares/error.middleware.js";
 import { sendEmail } from "../../../utils/mailer.js";
 
 const AuthService = {
-  
+
   async login(email, password) {
     const user = await User.findByEmail(email);
 
@@ -48,8 +48,7 @@ const AuthService = {
       roles: [
         {
           id: user.role_id,
-          name: user.name,
-          description: user.description,
+          name: user.role_name,
           disabled: !user.is_active,
         },
       ],
@@ -59,79 +58,62 @@ const AuthService = {
   },
 
   async forgotPassword(email) {
-    const user = await User.findByEmail(email);
-    if (!user) {
-      throw new AppError("Recovery code sent to your email", 200);
-    }
+    const user = await User.findByEmailOrRecoveryEmail(email);
 
-    // 1. Generate OTP
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpHash = crypto
-      .createHmac("sha256", process.env.JWT_SECRET)
-      .update(code)
-      .digest("hex");
+    if (user) {
+      const otp = Math.floor(100000 + Math.random() * 899999 + 1).toString();
+      const otpExpiryMinutes = Number(process.env.OTP_EXPIRY_MINUTES || 5);
+      const otpExpire = new Date(Date.now() + otpExpiryMinutes * 60 * 1000);
 
-    // 2. Create signed token (Stateless)
-    const verificationToken = jwt.sign(
-      { email: user.email, otpHash },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "10m",
-      },
-    );
+      await User.updateOTP(user.id, otp, otpExpire);
 
-    // 3. Send email
-    const expiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES) || 10;
-    const htmlBody = `<h3>Password Recovery</h3><p>Your OTP code is: <b>${code}</b>. It will expire in ${expiryMinutes} minutes.</p>`;
-    await sendEmail(
-      user.email,
-      "Password Recovery OTP",
-      `Your OTP is ${code}`,
-      htmlBody,
-    );
-
-    // 4. Return the verification token (client must send this back with the OTP)
-    return { message: "Recovery code sent to your email", verificationToken };
-  },
-
-  async verifyAndResetPassword(email, code, verificationToken, newPassword) {
-    try {
-      // 1. Verify the verificationToken
-      const decoded = jwt.verify(verificationToken, process.env.JWT_SECRET);
-
-      if (decoded.email !== email) {
-        throw new AppError("Invalid verification token", 400);
-      }
-
-      // 2. Hash incoming code and compare with stored hash in token
-      const incomingHash = crypto
-        .createHmac("sha256", process.env.JWT_SECRET)
-        .update(code)
-        .digest("hex");
-
-      if (incomingHash !== decoded.otpHash) {
-        throw new AppError("Invalid recovery code", 400);
-      }
-
-      // 3. Reset password
-      const user = await User.findByEmail(email);
-      if (!user) throw new AppError("User not found", 404);
-
-      await User.resetPassword(user.id, newPassword);
-      return { message: "Password updated successfully" };
-    } catch (err) {
-      if (err.name === "TokenExpiredError") {
-        throw new AppError(
-          "Recovery session expired. Please request a new code.",
-          400,
-        );
-      }
-      throw new AppError(
-        err.message || "Invalid or tampered verification token",
-        400,
+      await sendEmail(
+        email,
+        "Password Reset OTP",
+        `Your OTP is: ${otp}. It expires in ${otpExpiryMinutes} minutes.`,
+        `
+        <div style="font-family: Arial; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #333;">Password Reset</h2>
+          <p>You requested a password reset. Use the OTP below to proceed:</p>
+          <div style="background: #f4f4f4; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 5px; color: #007bff;">
+            ${otp}
+          </div>
+          <p>This OTP expires in ${otpExpiryMinutes} minutes.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        </div>
+      `,
       );
     }
+    return { message: "If this email exists, an OTP has been sent." };
+  },
+
+
+  async verifyOTP(email, otp) {
+    const user = await User.findByEmailOrRecoveryEmail(email);
+    if (!user || !user.otp || !user.otp_expire) {
+      throw new InvalidCredentialsException("Invalid or expired OTP");
+    }
+
+    const isMatch = await bcrypt.compare(otp, user.otp);
+    const isExpired = new Date() > new Date(user.otp_expire);
+
+    if (!isMatch || isExpired) {
+      throw new InvalidCredentialsException("Invalid or expired OTP");
+    }
+
+    return { message: "OTP verified correctly" };
+  },
+
+  async resetPassword(email, newPassword) {
+    const user = await User.findByEmailOrRecoveryEmail(email);
+    if (!user) {
+      throw new UserNotFoundException("User not found");
+    }
+
+    await User.resetPassword(user.id, newPassword);
+    return { message: "Password reset successfully" };
   },
 };
 
 export default AuthService;
+
