@@ -91,10 +91,14 @@ const ClientService = {
   async verifyOTP(email, otps) {
     const user = await Client.findByEmailOrRecoveryEmail(email);
     const isMatch = await bcrypt.compare(otps, user.otp);
-    if (!user || !isMatch || new Date() > new Date(user.otp_expire)) {
-      throw new InvalidCredentialsException("Invalid or expired OTP");
+    if (!user || !isMatch) {
+      throw new InvalidCredentialsException("Invalid OTP");
     }
-    return { message: "OTP verified correctly" };
+    if (user.otp_expire < new Date()) {
+      await Client.updateOTP(user.id, null, null);
+      throw new InvalidCredentialsException("OTP has expired");
+    }
+    return { message: "OTP verified successfully" };
   },
 
   async resetPassword(email, newPassword) {

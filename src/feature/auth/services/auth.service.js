@@ -97,11 +97,16 @@ const AuthService = {
     const isMatch = await bcrypt.compare(otp, user.otp);
     const isExpired = new Date() > new Date(user.otp_expire);
 
-    if (!isMatch || isExpired) {
-      throw new InvalidCredentialsException("Invalid or expired OTP");
+    if (!isMatch) {
+      throw new InvalidCredentialsException("Invalid OTP");
     }
-
-    return { message: "OTP verified correctly" };
+    if (isExpired) {
+      console.log("OTP has expired");
+      console.log(user.otp_expire);
+      await User.updateOTP(user.id, null, null);
+      throw new InvalidCredentialsException("OTP has expired");
+    }
+    return { message: "OTP verified successfully" };
   },
 
   async resetPassword(email, newPassword) {

@@ -146,32 +146,36 @@ CREATE TABLE IF NOT EXISTS clients (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS categories (
   id SERIAL PRIMARY KEY,
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
-  name VARCHAR(255) NOT NULL,
+  name VARCHAR(100) UNIQUE NOT NULL,
   description TEXT,
-  price DECIMAL(10, 2) NOT NULL,
-  sale_price DECIMAL(10, 2), -- Discounted price
-  stock_quantity INTEGER DEFAULT 0,
-  image_url TEXT,
-  is_active BOOLEAN DEFAULT TRUE,
-  is_deleted BOOLEAN DEFAULT FALSE,
+  status_id INTEGER REFERENCES status(id) ON DELETE SET NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP NULL
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS discounts (
   id SERIAL PRIMARY KEY,
-  code VARCHAR(50) UNIQUE NOT NULL,
-  type VARCHAR(20) NOT NULL, -- 'percentage' or 'fixed'
-  value DECIMAL(10, 2) NOT NULL,
-  start_date TIMESTAMP,
-  end_date TIMESTAMP,
-  usage_limit INTEGER,
-  used_count INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT TRUE,
+  discount_type_id INTEGER REFERENCES codes_values(id) ON DELETE SET NULL,
+  total_value DECIMAL(10, 2) NOT NULL,
+  start_date DATE, 
+  end_date DATE,
+  status_id INTEGER REFERENCES status(id) ON DELETE SET NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS products (
+  id SERIAL PRIMARY KEY,
+  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  price DECIMAL(10, 2) NOT NULL,
+  discount_id INTEGER REFERENCES discounts(id) ON DELETE SET NULL,
+  image_url TEXT,
+  selling_count INTEGER NOT NULL DEFAULT 0,
+  status_id INTEGER REFERENCES status(id) ON DELETE SET NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -182,10 +186,9 @@ CREATE TABLE IF NOT EXISTS orders (
   total_amount DECIMAL(10, 2) NOT NULL,
   discount_amount DECIMAL(10, 2) DEFAULT 0,
   final_amount DECIMAL(10, 2) NOT NULL,
-  discount_id INTEGER REFERENCES discounts(id) ON DELETE SET NULL,
-  status VARCHAR(50) DEFAULT 'pending',
-  payment_status VARCHAR(50) DEFAULT 'pending',
-  order_type VARCHAR(50) DEFAULT 'dine-in',
+  order_status_id INTEGER REFERENCES status(id) ON DELETE SET NULL,
+  payment_status_id INTEGER REFERENCES status(id) ON DELETE SET NULL,
+  order_type_id INTEGER REFERENCES status(id) ON DELETE SET NULL,
   table_number VARCHAR(10),
   note TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -201,6 +204,62 @@ CREATE TABLE IF NOT EXISTS order_items (
   subtotal DECIMAL(10, 2) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS orders_history (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+  order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+  order_items_id INTEGER REFERENCES order_items(id) ON DELETE SET NULL,
+);
+
+CREATE TABLE IF NOT EXISTS status (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  types VARCHAR(255) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS promote_code (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(50) UNIQUE NOT NULL,
+  description TEXT,
+  start_date TIMESTAMP,
+  end_date TIMESTAMP,
+  limit_usage INTEGER,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS slides (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255),
+  description TEXT,
+  image_url TEXT NOT NULL,
+  link_url TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+INSERT INTO status (name, types) VALUES 
+('Pending', 'order_status'),
+('Completed', 'order_status'),
+('Cancelled', 'order_status'),
+('Pending', 'payment_status'),
+('Completed', 'payment_status'),
+('Cancelled', 'payment_status'),
+('Dine-in', 'order_type'),
+('Takeaway', 'order_type'),
+('Delivery', 'order_type') ON CONFLICT DO NOTHING;
+
+INSERT INTO codes (name, description) VALUES 
+('Discount Type', 'Discount Type') ON CONFLICT DO NOTHING;
+INSERT INTO codes_values (code_id, value, label, sort_order, is_active) VALUES 
+(1, 'Percentage', 'Percentage', 1, true),
+(1, 'Fixed Amount', 'Fixed Amount', 2, true)
+ON CONFLICT DO NOTHING;
+
 
 -- Seed basic roles and permissions
 INSERT INTO roles (name, description ) VALUES ('Admin', 'System Administrator'), ('User', 'Standard User') ON CONFLICT DO NOTHING;
