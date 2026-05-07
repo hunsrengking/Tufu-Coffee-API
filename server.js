@@ -3,8 +3,9 @@ import app from "./src/app.js";
 import logger from "./src/utils/logger.js";
 
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || "[IP_ADDRESS]";
+const HOST = process.env.HOST || "0.0.0.0";
 
 app.listen(PORT, HOST, () => {
-  logger.info(`Server running on http://${HOST}:${PORT}`);
+  console.log(process.env.NODE_ENV);
+  logger.info(`Server running on port ${HOST}:${PORT}`);
 });
