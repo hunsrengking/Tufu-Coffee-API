@@ -49,4 +49,4 @@ databases:
     user: tufu_user
     plan: free
     postgreSQL:
-      version: 18
+      postgresMajorVersion: 18
