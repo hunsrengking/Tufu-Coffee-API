@@ -31,6 +31,8 @@ app.get("/", (req, res) => {
   res.json("Welcome to Tufu API");
 });
 
+app.get("/favicon.ico", (req, res) => res.status(204).end());
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/employees", employeeRoutes);
