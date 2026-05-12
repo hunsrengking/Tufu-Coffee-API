@@ -48,5 +48,4 @@ databases:
     databaseName: tufu_db
     user: tufu_user
     plan: free
-    postgreSQL:
-      postgresMajorVersion: 18
+    postgresMajorVersion: 18
