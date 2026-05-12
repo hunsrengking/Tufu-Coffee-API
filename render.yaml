@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: tufu-coffee-api
+    env: node
+    buildCommand: npm install && npm run migrate && npm run seed
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: HOST
+        value: 0.0.0.0
+      - key: DB_HOST
+        fromDatabase:
+          name: tufu-postgres
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: tufu-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: tufu-postgres
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: tufu-postgres
+          property: database
+      - key: DB_PORT
+        value: "5432"
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: "24h"
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_PASS
+        sync: false
+      - key: OTP_SECRET
+        sync: false
+      - key: OTP_EXPIRY_MINUTES
+        value: "10"
+
+databases:
+  - name: tufu-postgres
+    databaseName: tufu_db
+    user: tufu_user
+    plan: free
+    postgresMajorVersion: "18"

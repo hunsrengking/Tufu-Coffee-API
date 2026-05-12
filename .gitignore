@@ -1,6 +1,8 @@
 node_modules
 logs/*.log
 .env
+.env.production
+.env.local
 .DS_Store
 dist
 *.local
