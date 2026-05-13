@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\NodeJs\\Project-Coffee-Online\\Tufu-Coffee-API\\logs\\.86ef87544b20ad5f9f2e6b50ae4002632dde09c2-audit.json",
+    "files": [
+        {
+            "date": 1778659759207,
+            "name": "D:\\NodeJs\\Project-Coffee-Online\\Tufu-Coffee-API\\logs\\combined-2026-05-13.log",
+            "hash": "665208d22c24d6fe59daf9d3b995249d390d7e5ac535987f1c91cc91cc96d0bd"
+        }
+    ],
+    "hashType": "sha256"
+}
