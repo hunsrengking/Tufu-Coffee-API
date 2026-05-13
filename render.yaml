@@ -41,7 +41,7 @@ services:
       - key: OTP_SECRET
         sync: false
       - key: OTP_EXPIRY_MINUTES
-        value: "10"
+        value: false
 
 databases:
   - name: tufu-postgres
